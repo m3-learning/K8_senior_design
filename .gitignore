@@ -161,4 +161,9 @@ cython_debug/
 
 # Ignore all public keys
 *.pub
+
+# Ignore Database
 .DS_STORE
+
+# Ignore all Builds
+_build
