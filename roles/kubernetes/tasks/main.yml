@@ -1,0 +1,8 @@
+  - name: Pre configuration
+    include_tasks: pre-configure.yml
+
+  - name: Deploy cluster
+    include_tasks: join-cluster.yml
+
+#   - name: Post configuration
+    # include_tasks: post-configure.yml

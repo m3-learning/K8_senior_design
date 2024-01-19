@@ -1,6 +1,6 @@
 # Test Environment Setup For Docker
 
-The purpose of this directory is to create docker images with the required dependencies for setting up a High-Availability Kubernetes cluster and ElasticSearch locally. 
+The purpose of this directory is to create docker images with the required dependencies for setting up a High-Availability Kubernetes cluster and ElasticSearch locally.
 
 ## Table of Contents
 ------
