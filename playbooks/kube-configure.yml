@@ -1,0 +1,49 @@
+# kube-configure.yml - Configure and deploy kubernetes HA cluster
+---
+- hosts: all
+  become: true
+  pre_tasks:
+    - name: Set length of hosts
+      set_fact:
+        host_count: '{{ hostvars[inventory_hostname].groups.all | length }}'
+
+    - name: Fail if invalid cluster parameters
+      fail:
+        msg: "Invalid specs, must supply three nodes to create a cluster (create_cluster=true), or specify a host (add_host)"
+      when: (host_count | int < 3 and not add_host) or (host_count | int < 1 and add_host)
+
+    - name: Set first host as master
+      set_fact:
+        master_node_ip: '{{ hostvars[inventory_hostname].groups.all[0] }}'
+      when: master_node is not defined
+
+    - name: Set new node facts
+      block:
+        - name: Add new node to existing cluster
+          set_fact:
+            node_list: '{{ hostvars[inventory_hostname].groups.all[1:] }}'
+          when: add_host
+
+        - name: Create new cluster
+          set_fact:
+            node_list: '{{ hostvars[inventory_hostname].groups.all }}'
+          when: not add_host
+
+  tasks:
+    - name: Run the equivalent of "apt-get update" as a separate step
+      apt:
+        update_cache: yes
+
+    - name: display hosts
+      debug: var=hostvars[inventory_hostname].groups.all
+
+    - name: Configure and Deploy microk8s cluster
+      include_role:
+        name: kubernetes
+      vars:
+        # Cluster parameters
+        nodes: node_list
+        master_node: '{{ master_node_ip }}'
+        # Specify Addons to enable
+        addons: ['dns', 'log']
+...

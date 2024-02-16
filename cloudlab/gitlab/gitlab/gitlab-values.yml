@@ -1,0 +1,43 @@
+global:
+  edition: ee
+  gitlab:
+  psql:
+    host:
+    password:
+      key:
+      secret:
+  redis:
+    host:
+    auth:
+      secret:
+      key:
+  hosts:
+    domain: example.com
+    externalIP:
+
+redis:
+  install: false
+
+postgresql:
+  install: false
+
+certmanager-issuer:
+  email: dql27@drexel.edu
+
+minio:
+  persistence:
+    storageClass:
+    volumeName:
+
+gitlab:
+  toolbox:
+    persistence:
+      storageClass:
+      volumeName:
+    backups:
+      cron:
+        enabled: true
+  gitaly:
+    persistence:
+      storageClass:
+      volumeName:

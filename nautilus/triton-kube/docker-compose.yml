@@ -1,0 +1,15 @@
+version: '3'
+services:
+    tritonserver:
+        shm_size: 1g
+        ulimits:
+            memlock: -1
+            stack: 67108864
+        ports:
+            - 8000:8000
+            - 8001:8001
+            - 8002:8002
+        volumes:
+            - /home/senior/triton-mnist-example/model_repository:/models
+        image: nvcr.io/nvidia/tritonserver:20.08-py3
+        command: tritonserver --model-repository=/models --exit-on-error=false

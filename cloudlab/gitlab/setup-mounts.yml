@@ -1,0 +1,15 @@
+- hosts: all
+  become: true
+  tasks:
+    - name: Ensure local mounts are available
+      ansible.builtin.file:
+        path: '{{ item }}'
+        state: directory
+        recurse: true
+      loop:
+        - /mnt/disks/ssd1
+        - /mnt/disks/ssd2
+        - /mnt/disks/ssd3
+        - /mnt/disks/ssd4
+        - /mnt/disks/ssd5
+        - /mnt/disks/ssd6

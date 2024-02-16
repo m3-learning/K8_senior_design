@@ -1,0 +1,19 @@
+version: '3.5'
+services:
+  gitlab:
+    image: 'gitlab/gitlab-ee:latest'
+    container_name: 'gitlab-ee'
+    restart: always
+    hostname: 'example-hostname'
+    environment:
+      GITLAB_OMNIBUS_CONFIG: |
+        gitlab_rails['initial_root_password'] = '{{ PLACEHOLDER_ROOT_PASSWORD }}'
+    ports:
+      - '80:80'
+      - '443:443'
+      - '22:22'
+    volumes:
+      - '/config:/etc/gitlab'
+      - '/logs:/var/log/gitlab'
+      - '/data:/var/opt/gitlab'
+    shm_size: '256m'

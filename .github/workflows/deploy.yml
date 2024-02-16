@@ -37,3 +37,6 @@ jobs:
       with:
         github_token: ${{ secrets.GITHUB_TOKEN }}
         publish_dir: pages/pages/_build/html
+
+    - name: pre-commit
+      uses: pre-commit/action@v3.0.0

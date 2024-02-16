@@ -1,7 +1,9 @@
 version: '3'
 services:
   node1:
+    image: test-k8s-node
     container_name: node1
+    hostname: node1
     restart: on-failure
     command: ["sleep", "infinity"]
     build:
@@ -11,31 +13,21 @@ services:
     privileged: true
 
   node2:
+    image: test-k8s-node
     container_name: node2
+    hostname: node2
     restart: on-failure
     command: ["sleep", "infinity"]
-    build:
-      dockerfile: "./Dockerfile"
     ports:
       - 2201:22
     privileged: true
 
   node3:
+    image: test-k8s-node
     container_name: node3
+    hostname: node3
     restart: on-failure
     command: ["sleep", "infinity"]
-    build:
-      dockerfile: "./Dockerfile"
     ports:
       - 2202:22
-    privileged: true
-
-  node4:
-    container_name: node4
-    restart: on-failure
-    command: ["sleep", "infinity"]
-    build:
-      dockerfile: "./Dockerfile"
-    ports:
-      - 2203:22
     privileged: true

@@ -1,0 +1,10 @@
+  - name: Ensure community is enabled first if applicable
+    command: microk8s enable community
+    delegate_to: '{{ master_node }}'
+    when: "'community' in addons"
+
+  - name: Enable additional addons
+    command: microk8s enable '{{ item }}'
+    delegate_to: '{{ master_node }}'
+    loop: '{{ addons }}'
+    when: addons | length > 0
