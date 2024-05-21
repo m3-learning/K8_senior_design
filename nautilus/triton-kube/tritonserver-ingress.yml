@@ -1,0 +1,35 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  annotations:
+    kubernetes.io/ingress.class: haproxy
+  name: tritonserver-ingress
+spec:
+  rules:
+    - host: m3learning-triton.nrp-nautilus.io
+      http:
+        paths:
+          - path: /8000
+            pathType: Prefix
+            backend:
+              service:
+                name: tritonserver-svc
+                port:
+                  number: 8000
+          - path: /8001
+            pathType: Prefix
+            backend:
+              service:
+                name: tritonserver-svc
+                port:
+                  number: 8001
+          - path: /8002
+            pathType: Prefix
+            backend:
+              service:
+                name: tritonserver-svc
+                port:
+                  number: 8002
+  tls:
+    - hosts:
+        - m3learning-triton.nrp-nautilus.io

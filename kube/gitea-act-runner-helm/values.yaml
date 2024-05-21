@@ -1,0 +1,3 @@
+appName: act-runner
+replicaCount: 3
+secret: ""
