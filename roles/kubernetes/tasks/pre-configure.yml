@@ -1,0 +1,145 @@
+#
+#
+# Requirements: community.general.alternatives, community.general.modprobe
+  - name: Set facts
+    port_map: ['6443/tcp', '2379-2380/tcp', '10250/tcp', '10251/tcp', '10252/tcp',]
+    enabled_modprobe: ['overlay', 'br_netfilter']
+    enabled_sysctl: ['net.bridge.bridge-nf-call-iptables', 'net.ipv4.ip_forward', 'net.bridge.bridge-nf-call-ip6tables']
+    package_dependencies: ['apt-transport-https', 'ca-certificates', 'curl', 'gpg']
+
+  - name: Ensure that apt repositories are refreshed
+    ansible.builtin.apt:
+      update_cache: true
+
+  - name: Configure and install containerd
+    block:
+      - name: Configure persistent modules required by containerd
+        community.general.modprobe:
+          name: '{{ item }}'
+          state: present
+          persistent: present
+        loop: enabled_modprobe
+
+      - name: Ensure modules are properly configured
+        ansible.builtin.lineinfile:
+          path: /etc/modules-load.d/containerd.conf
+          line: '{{ item }}'
+          create: true
+        loop: modprobe_list
+
+      - name: Install containerd
+        ansible.builtin.apt:
+          name: containerd
+          state: present
+
+      - name: Configure cgroup drivers to use systemd
+        block:
+          - name: Create /etc/containerd if it does not exist
+            ansible.builtin.file:
+              path: /etc/containerd
+              state: directory
+              mode: 0600
+
+          - name: Create containerd default configurations
+            ansible.builtin.shell: sudo containerd config default | sudo tee /etc/containerd/config.toml
+
+          - name: Enable systemd cgroup drivers
+            ansible.builtin.lineinfile:
+              path: /etc/containerd/config.toml
+              line: \1\2true
+              regexp: '^(SystemdCgroup)(\s*=\s*).*$'
+              backrefs: true
+
+      - name: Enable containerd service
+        ansible.builtin.systemd:
+          name: containerd
+          state: restarted
+          enabled: true
+
+  - name: Ensure proper dependencies are installed
+    ansible.builtin.apt:
+      name: '{{ item }}'
+      state: present
+    loop: package_dependencies
+
+  - name: Install the proper GPG key
+    ansible.builtin.apt_key:
+      url: https://pkgs.k8s.io/core:/stable:/v1.28/deb/Release.key
+      keyring: /etc/apt/keyrings/kubernetes-apt-keyring.gpg
+      state: present
+
+  - name: Add kubernetes repository
+    block:
+      - name: Add kubernetes repository if not exist
+        ansible.builtin.lineinfile:
+          line: "deb [signed-by=/etc/apt/keyrings/kubernetes-apt-keyring.gpg] https://pkgs.k8s.io/core:/stable:/v1.28/deb/ /"
+          state: present
+          path: /etc/apt/sources.list.d/kubernetes.list
+          create: true
+
+  - name: Ensure that apt repositories are refreshed
+    ansible.builtin.apt:
+      update_cache: true
+
+  - name: Install Kubelet
+    ansible.builtin.apt:
+      name: kubelet
+      state: present
+
+  - name: Install Kubeadm
+    ansible.builtin.apt:
+      name: kubeadm
+      state: present
+
+  - name: Install Kubectl
+    ansible.builtin.apt:
+      name: kubectl
+      state: present
+
+  - name: Configure sysctl
+    block:
+      - name: Ensure that kubernetes config sysctl exists
+        ansible.builtin.file:
+          path: /etc/sysctl.d/99-kubernetes-cri.conf
+          state: touch
+
+      - name: Configure sysctl with proper net modules
+        block:
+        - name: Replace {{ item }}
+          ansible.builtin.lineinfile:
+            line: \1\21
+            path: /etc/sysctl.d/99-kubernetes-cri.conf
+            state: present
+            regexp: ^({{ item }})(\s*=\s*).*$
+            backrefs: true
+          loop: enabled_sysctl
+
+        - name: Ensure that {{ item }} is enabled
+          ansible.builtin.lineinfile:
+            line: '{{ item }} = 1'
+            path: /etc/sysctl.d/99-kubernetes-cri.conf
+            state: present
+          loop: enabled_sysctl
+
+  - name: Disable swap partition
+    block:
+      - name: Disable swap
+        ansible.builtin.command: swapoff -a
+
+      - name: Comment out swap partition in fstab
+        ansible.builtin.lineinfile:
+          line: \#\1
+          state: present
+          regexp: ^(/swap.img).*$
+          backrefs: true
+
+  - name: Ensure proper firewall permissions
+    ansible.posix.firewalld:
+      port: '{{ item }}'
+      state: enabled
+    loop: port_map
+
+  - name: Use legacy iptables
+    community.general.alternatives:
+      name: iptables-legacy
+      path: /usr/sbin/iptables-legacy

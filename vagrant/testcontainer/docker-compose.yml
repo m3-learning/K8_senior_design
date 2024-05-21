@@ -1,0 +1,11 @@
+version: '3'
+services:
+  node1:
+    container_name: ubuntu-docker-host
+    restart: on-failure
+    command: ["sleep", "infinity"]
+    build:
+      dockerfile: "./Dockerfile"
+    ports:
+      - 2000:22
+    privileged: true

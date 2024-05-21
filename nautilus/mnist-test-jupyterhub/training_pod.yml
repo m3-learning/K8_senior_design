@@ -1,0 +1,22 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: tutorial-pod-dexter
+spec:
+  containers:
+  - name: gpu-container
+    image: gitlab-registry.nrp-nautilus.io/zihaozhou/nautilus_tutorial:jupyterhub
+    command: ["jupyter", "lab", "--NotebookApp.token=627a7b3b"]
+    volumeMounts:
+    - mountPath: /tutorial
+      name: tutorial-volume-dexter
+    resources:
+      limits:
+        nvidia.com/gpu: "1"
+        memory: "8G"
+        cpu: "4"
+  restartPolicy: Never
+  volumes:
+    - name: tutorial-volume-dexter
+      persistentVolumeClaim:
+        claimName: tutorial-volume-dexter

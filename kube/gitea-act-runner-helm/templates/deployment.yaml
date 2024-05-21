@@ -1,0 +1,46 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: {{ .Values.appName }}
+  name: {{ .Release.Name }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      app: {{ .Values.appName }}
+  strategy: {}
+  template:
+    metadata:
+      creationTimestamp: null
+      labels:
+        app: {{ .Values.appName }}
+    spec:
+      restartPolicy: Always
+      volumes:
+      - name: runner-data
+        persistentVolumeClaim:
+          claimName: {{ .Release.Name }}-vol
+      securityContext:
+        fsGroup: 1000
+      containers:
+      - name: runner
+        image: gitea/act_runner:nightly-dind-rootless
+        imagePullPolicy: Always
+        # command: ["sh", "-c", "while ! nc -z localhost 2376 </dev/null; do echo 'waiting for docker daemon...'; sleep 5; done; /sbin/tini -- /opt/act/run.sh"]
+        env:
+        - name: DOCKER_HOST
+          value: tcp://localhost:2376
+        - name: DOCKER_CERT_PATH
+          value: /certs/client
+        - name: DOCKER_TLS_VERIFY
+          value: "1"
+        - name: GITEA_INSTANCE_URL
+          value: http://10.168.1.203:8080 # This needs to be the loadbalancer pointing to the gitea service
+        - name: GITEA_RUNNER_REGISTRATION_TOKEN
+          value: {{ .Values.secret }}
+        securityContext:
+          privileged: true
+        volumeMounts:
+        - name: runner-data
+          mountPath: /data

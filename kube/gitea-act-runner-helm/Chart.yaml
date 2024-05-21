@@ -1,0 +1,5 @@
+name: gitea-act-runner-helm
+version: 1.0.0
+schema:
+  openapi: 3.0.0
+  dependencies: []

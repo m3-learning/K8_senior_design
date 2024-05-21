@@ -1,0 +1,27 @@
+  - name: Create join token from designated master node as worker node
+    shell: sudo kubeadm init --pod-network-cidr 192.168.0.0/16 --cri-socket /run/containerd/containerd.sock | sed -n '12,$p'
+    delegate_to: '{{ master_node }}'
+    register: token_output
+
+  - name: Create kubeconfig file
+    block:
+    - name: Ensure .kube exists
+      ansible.builtin.file:
+        path: ~/.kube
+        state: directory
+
+    - name: Copy admin config to kube config
+      ansible.builtin.copy:
+        dest: ~/.kube/config
+        src: /etc/kubernetes/admin.conf
+        remote_src: true
+        owner: root
+        group: root
+
+  - name: Join the cluster
+    ansible.builtin.shell: '{{ token_output.stdout }}'
+    when: ansible_ssh_host != master_node
+    ignore_errors: true
+
+  - name: Install Calico CNI
+    ansible.builtin.shell: kubectl apply -f calico.yaml

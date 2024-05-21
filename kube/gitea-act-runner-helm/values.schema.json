@@ -1,0 +1,6 @@
+{
+  "secret": {
+    "type": "string",
+    "required": true
+  }
+}

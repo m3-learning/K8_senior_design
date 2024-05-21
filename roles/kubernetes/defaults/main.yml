@@ -1,0 +1,7 @@
+---
+addons: []
+master_node: ''
+nodes: []
+ha_cluster: false
+
+...
